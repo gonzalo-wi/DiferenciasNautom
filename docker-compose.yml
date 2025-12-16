@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  diferencias-backend:
+    build: .
+    container_name: diferencias-nautom-backend
+    ports:
+      - "8093:8080"  # Puerto 8093 en el host, 8080 en el contenedor
+    environment:
+      - DB_USER=h2o
+      - DB_PASS=Jumi1234
+      - DB_HOST=192.168.0.234
+      - DB_PORT=1433
+      - DB_NAME=PAC
+      - GIN_MODE=release
+    restart: unless-stopped
+    networks:
+      - diferencias-network
+
+networks:
+  diferencias-network:
+    driver: bridge
