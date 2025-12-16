@@ -54,7 +54,7 @@ func GetDifferences(c *gin.Context) {
 
 	for rows.Next() {
 		var fecha, userName string
-		var diferencia, esperadoNuestro, esperadoAguas float64
+		var diferencia, esperadoNuestro, esperadoAguas sql.NullFloat64
 
 		err := rows.Scan(&fecha, &userName, &diferencia, &esperadoNuestro, &esperadoAguas)
 		if err != nil {
@@ -62,8 +62,13 @@ func GetDifferences(c *gin.Context) {
 			return
 		}
 
+		diferenciaVal := 0.0
+		if diferencia.Valid {
+			diferenciaVal = diferencia.Float64
+		}
+
 		tipo := "sobrante"
-		if diferencia < 0 {
+		if diferenciaVal < 0 {
 			tipo = "faltante"
 			stats.TotalFaltantes++
 		} else {
@@ -73,14 +78,24 @@ func GetDifferences(c *gin.Context) {
 		stats.TotalDiferencias++
 		stats.Consolidados++
 
+		esperadoNuestroVal := 0.0
+		if esperadoNuestro.Valid {
+			esperadoNuestroVal = esperadoNuestro.Float64
+		}
+
+		esperadoAguasVal := 0.0
+		if esperadoAguas.Valid {
+			esperadoAguasVal = esperadoAguas.Float64
+		}
+
 		d := models.Difference{
 			Date:            fecha,
 			Reparto:         userName,
-			Diferencia:      diferencia,
+			Diferencia:      diferenciaVal,
 			Tipo:            tipo,
 			UserName:        userName,
-			DepositEsperado: esperadoAguas,
-			TotalAmount:     esperadoNuestro,
+			DepositEsperado: esperadoAguasVal,
+			TotalAmount:     esperadoNuestroVal,
 		}
 		items = append(items, d)
 	}
